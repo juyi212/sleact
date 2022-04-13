@@ -1,6 +1,8 @@
 import React, {useState, useCallback} from 'react';
 import useInput from '@hooks/useInput';
 import { Button, Error, Form, Header, Input, Label, LinkContainer, Success } from '@pages/SignUp/styles';
+import axios from 'axios';
+import {Link} from 'react-router-dom'
 
 const SignUp = () => {
     const [signUpError, setSignUpError] = useState(false);
@@ -31,7 +33,24 @@ const SignUp = () => {
     const onSubmit = useCallback(
         (e: any) => {
           e.preventDefault();
-          
+          if (!mismatchError && nickname) {
+            // 요청을 두번 보내게되면 올바른 응답값이 반환대지 않을 수 있음 
+            setSignUpSuccess(false)
+            setSignUpError(false)
+              axios.post('/api/users', {
+                  email,
+                  nickname,
+                  password
+              })
+              .then((res) => {
+                  setSignUpSuccess(true)
+              })
+              .catch((error) => {
+                  console.log(error)
+                  setSignUpError(true)
+              })
+              .finally(() => {})
+          }
         },
         [email, nickname, password, mismatchError],
       );
@@ -79,7 +98,7 @@ const SignUp = () => {
                 </Form>
                 <LinkContainer>
                     이미 회원이신가요?&nbsp;
-                    <a href="/login">로그인 하러가기</a>
+                    <Link to="/login">로그인 하러가기</Link>
                 </LinkContainer>
         </div>
     )

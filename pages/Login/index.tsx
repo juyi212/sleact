@@ -4,9 +4,10 @@ import axios from 'axios';
 import React, { useCallback, useState } from 'react';
 import fetcher from '@utils/fetcher';
 import useSWR from 'swr';
+import { Redirect } from 'react-router';
 
 const LogIn = () => {
-    const { data: userData, error, mutate }  = useSWR('http://localhost:3095/api/users', fetcher, {
+  const { data: userData, error, mutate }  = useSWR('http://localhost:3095/api/users', fetcher, {
         dedupingInterval: 100000
     });
   const [logInError, setLogInError] = useState(false);
@@ -25,7 +26,7 @@ const LogIn = () => {
           },
         )
         .then((res) => {
-          mutate()
+          mutate(res.data, false)
         })
         .catch((error) => {
           setLogInError(error.response?.data?.code === 401);
@@ -33,6 +34,13 @@ const LogIn = () => {
     },
     [email, password],
   );
+  if(userData === undefined) {
+    return <div>로딩중...</div>
+  } 
+
+  if (userData) {
+      return <Redirect to = '/workspace/channel' />
+  }
 
 //   console.log(error, userData);
 //   if (!error && userData) {

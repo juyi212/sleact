@@ -3,8 +3,14 @@ import useInput from '@hooks/useInput';
 import { Button, Error, Form, Header, Input, Label, LinkContainer, Success } from '@pages/SignUp/styles';
 import axios from 'axios';
 import {Link} from 'react-router-dom'
+import useSWR from 'swr';
+import fetcher from '@utils/fetcher';
+import { Redirect } from 'react-router';
 
 const SignUp = () => {
+    const { data: userData, error, mutate }  = useSWR('http://localhost:3095/api/users', fetcher, {
+        dedupingInterval: 100000
+    });
     const [signUpError, setSignUpError] = useState(false);
     const [signUpSuccess, setSignUpSuccess] = useState(false);
     const [mismatchError, setMismatchError] = useState(false);
@@ -54,6 +60,11 @@ const SignUp = () => {
         },
         [email, nickname, password, mismatchError],
       );
+
+
+    if(userData){
+        return <Redirect to='/workspace/channel' />
+    }
 
 
     return (

@@ -5,6 +5,7 @@ import { Redirect, Switch, Route } from 'react-router-dom';
 const LogIn = loadable(() => import('@pages/Login'))
 const SignUp = loadable(() => import('@pages/SignUp'))
 const Channel = loadable(() => import('@pages/Channel'))
+const DirectMessage = loadable(() => import('@pages/DirectMessage'))
 
 const App = () => {
     return (
@@ -13,6 +14,7 @@ const App = () => {
             <Route path = '/login' component= {LogIn}></Route>
             <Route path = '/signup' component= {SignUp}></Route>
             <Route path = '/workspace/channel' component= {Channel}></Route>
+            <Route path = '/workspace/dm' component= {DirectMessage}></Route>
         </Switch>
     )
 }

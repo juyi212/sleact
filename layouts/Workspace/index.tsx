@@ -9,6 +9,10 @@ import { IChannel, IUser } from '@typings/db';
 import { Button, Input, Label } from '@pages/SignUp/styles';
 import useInput from '@hooks/useInput';
 import { toast } from 'react-toastify';
+import CreateChannelModal from '@components/CreateChannelModal';
+import Channel from '@pages/Channel';
+import DirectMessage from '@pages/DirectMessage';
+import { useParams } from 'react-router';
 
 import {
     AddButton,
@@ -33,8 +37,18 @@ type Props = {
   };
 
 const Workspace: React.FC<Props> = ({children}) => {
-    const { data: userData, error, mutate }  = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher);
+    const { workspace } = useParams<{ workspace: string}> ();
+    const { data: userData, error, mutate }  = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher, {
+        dedupingInterval: 2000
+    });
+    const { data: channelData } = useSWR<IChannel[]> (
+        userData ? `http://localhost:3095/api/workspaces/${workspace}/channels`: null,
+        fetcher
+    )
+    console.log(channelData)
     const [showUserMenu, setShowUserMenu] = useState(false)
+    const [showWorkspaceModal, setShowWorkspaceModal] = useState(false)
+    const [showCreateChannelModal,setShowCreateChannelModal] = useState(false)
     const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
     const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('')
     const [newUrl, onChangeNewUrl, setNewUrl] = useInput('')
@@ -59,6 +73,7 @@ const Workspace: React.FC<Props> = ({children}) => {
 
     const onCloseModal = useCallback(() => {
         setShowCreateWorkspaceModal(false);
+        setShowCreateChannelModal(false)
     }, [])
     
     const onCreateWorkspace = useCallback((e: any) => {
@@ -83,6 +98,14 @@ const Workspace: React.FC<Props> = ({children}) => {
             toast.error(error.response?.data, { position: 'bottom-center' });
         })
     }, [newWorkspace, newUrl])
+
+    const toggleWorkspaceModal = useCallback(() => {
+        setShowWorkspaceModal((prev) => !prev);
+    },[])
+
+    const onClickAddChannel = useCallback(() => {
+        setShowCreateChannelModal(true);
+    },[])
 
 
     if(!userData) {
@@ -122,16 +145,30 @@ const Workspace: React.FC<Props> = ({children}) => {
                     <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
                 </Workspaces>
                 <Channels>
-                    <WorkspaceName>Sleact</WorkspaceName>
+                    <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
                     <MenuScroll>
-                       menu 
+                       <Menu show = {showWorkspaceModal} onCloseModal = {toggleWorkspaceModal} style={{ top: 95, left: 80}}>
+                        <WorkspaceModal>
+                            <h2>Sleact</h2>
+                            <button onClick={onClickAddChannel}>채널 만들기</button>
+                            <button onClick={onLogout}>로그아웃</button>
+                        </WorkspaceModal>
+                       </Menu>
+                       {channelData?.map((v) => (
+                           <div>
+                               {v.name}
+                           </div>
+                       ))}
                     </MenuScroll>
                 </Channels>
                 <Chats>
-                    {children}
+                <Switch>
+                    <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
+                    <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
+                </Switch>
                 </Chats>
             </WorkspaceWrapper>
-            {children}
+
             <Modal show = {showCreateWorkspaceModal} onCloseModal = {onCloseModal}>
                 <form onSubmit={onCreateWorkspace}>
                 <Label id="workspace-label">
@@ -145,6 +182,11 @@ const Workspace: React.FC<Props> = ({children}) => {
                 <Button type="submit">생성하기</Button>
                 </form>
             </Modal>
+            <CreateChannelModal 
+                show={showCreateChannelModal} 
+                onCloseModal = {onCloseModal} 
+                setShowCreateChannelModal={setShowCreateChannelModal}
+            />
         </div>
     )
 }

@@ -6,6 +6,7 @@ const LogIn = loadable(() => import('@pages/Login'))
 const SignUp = loadable(() => import('@pages/SignUp'))
 const Channel = loadable(() => import('@pages/Channel'))
 const DirectMessage = loadable(() => import('@pages/DirectMessage'))
+const Workspace = loadable(() => import('@layouts/Workspace'))
 
 const App = () => {
     return (
@@ -13,8 +14,7 @@ const App = () => {
             <Redirect exact path = '/' to='login' />
             <Route path = '/login' component= {LogIn}></Route>
             <Route path = '/signup' component= {SignUp}></Route>
-            <Route path = '/workspace/channel' component= {Channel}></Route>
-            <Route path = '/workspace/dm' component= {DirectMessage}></Route>
+            <Route path = '/workspace/:workspace' component= {Workspace}></Route>
         </Switch>
     )
 }

@@ -14,7 +14,11 @@ interface Props {
 const Menu:  React.FC<Props>  = ({closeButton, style, show, children, onCloseModal }) => {
     const stopPropagation = useCallback((e: any) => {
         e.stopPropagation();
-      }, []);
+    }, []);
+    
+    if(!show) {
+        return null;
+    }
 
 
     return (

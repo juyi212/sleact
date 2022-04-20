@@ -14,10 +14,12 @@ const EachChannel: VFC<Props> = ({ channel }) => {
   const { data: userData } = useSWR<IUser>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
+
   // const date = localStorage.getItem(`${workspace}-${channel.name}`) || 0;
-  // const { data: count, mutate } = useSWR<number>(
-  //   userData ? `/api/workspaces/${workspace}/channels/${channel.name}/unreads?after=${date}` : null,
-  //   fetcher, ) ;
+  const { data: count, mutate } = useSWR(
+    channel.name && userData ? `/api/workspaces/${workspace}/channels/${channel.name}/members` : null,
+    fetcher, ) ;
+  
 
   // useEffect(() => {
   //   if (location.pathname === `/workspace/${workspace}/channel/${channel.name}`) {
@@ -27,8 +29,8 @@ const EachChannel: VFC<Props> = ({ channel }) => {
 
   return (
     <NavLink key={channel.name} activeClassName="selected" to={`/workspace/${workspace}/channel/${channel.name}`}>
-      {/* <span className={count !== undefined && count > 0 ? 'bold' : undefined}># {channel.name}</span>
-      {count !== undefined && count > 0 && <span className="count">{count}</span>} */}
+      <span className={count !== undefined && count > 0 ? 'bold' : undefined}># {channel.name}</span>
+      {/* {count !== undefined && count > 0 && <span className="count">{count}</span>} */}
     </NavLink>
   );
 };

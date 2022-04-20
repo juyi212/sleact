@@ -171,11 +171,6 @@ const Workspace: React.FC<Props> = ({children}) => {
                        </Menu>
                        <ChannelList />
                        <DMList />
-                       {channelData?.map((v) => (
-                           <div>
-                               {v.name}
-                           </div>
-                       ))}
                     </MenuScroll>
                 </Channels>
                 <Chats>

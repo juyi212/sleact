@@ -45,7 +45,7 @@ const CreateChannelModal : React.FC<Props>= ({show, onCloseModal, setShowCreateC
         console.dir(error)
         toast.error(error.response?.data, { position: 'bottom-center' });
       })
-    }, [newChannel])
+    }, [newChannel, revalidateChannel, setNewChannel, setShowCreateChannelModal, workspace])
 
 
     return (

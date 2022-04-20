@@ -8,7 +8,7 @@ import fetcher from '@utils/fetcher';
 import { Redirect } from 'react-router';
 
 const SignUp = () => {
-    const { data: userData, error, mutate }  = useSWR('http://localhost:3095/api/users', fetcher, {
+    const { data: userData, error, mutate }  = useSWR('/api/users', fetcher, {
         dedupingInterval: 100000
     });
     const [signUpError, setSignUpError] = useState(false);

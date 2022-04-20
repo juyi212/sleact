@@ -7,8 +7,8 @@ import useSWR from 'swr';
 import { Redirect } from 'react-router';
 
 const LogIn = () => {
-  const { data: userData, error, mutate }  = useSWR('http://localhost:3095/api/users', fetcher, {
-        dedupingInterval: 100000
+  const { data: userData, error, mutate }  = useSWR('/api/users', fetcher, {
+        dedupingInterval: 1000
     });
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
@@ -19,14 +19,14 @@ const LogIn = () => {
       setLogInError(false);
       axios
         .post(
-          'http://localhost:3095/api/users/login',
+          '/api/users/login',
           { email, password },
           {
             withCredentials: true,
           },
         )
-        .then((res) => {
-          mutate(res.data, false)
+        .then(() => {
+          mutate()
         })
         .catch((error) => {
           setLogInError(error.response?.data?.code === 401);
@@ -38,15 +38,10 @@ const LogIn = () => {
     return <div>로딩중...</div>
   } 
 
-  if (userData) {
-      return <Redirect to="/workspace/sleact/channel/일반" />;
+  if (!error && userData) {
+    console.log('로그인됨', userData);
+    return <Redirect to="/workspace/sleact/channel/일반" />;
   }
-
-//   console.log(error, userData);
-//   if (!error && userData) {
-//     console.log('로그인됨', userData);
-//     return <Redirect to="/workspace/sleact/channel/일반" />;
-//   }
 
   return (
     <div id="container">

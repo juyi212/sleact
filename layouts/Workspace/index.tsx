@@ -1,4 +1,4 @@
-import React, {FC, useCallback,useState} from 'react'
+import React, {FC, useCallback,useEffect,useState} from 'react'
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
@@ -18,6 +18,7 @@ import { useParams } from 'react-router';
 import Modal from '@components/Modal';
 import ChannelList from '@components/ChannelList';
 import DMList from '@components/DMList';
+import useSocket from '@hooks/useSocket';
 
 import {
     AddButton,
@@ -35,6 +36,7 @@ import {
     Workspaces,
     WorkspaceWrapper,
   } from './styles';
+import { disconnect } from 'process';
 
 type Props = {
     children?: React.ReactNode
@@ -47,7 +49,6 @@ const Workspace: React.FC<Props> = ({children}) => {
         userData ? `/api/workspaces/${workspace}/channels`: null,
         fetcher
     )
-
     const [showUserMenu, setShowUserMenu] = useState(false)
     const [showWorkspaceModal, setShowWorkspaceModal] = useState(false)
     const [showCreateChannelModal,setShowCreateChannelModal] = useState(false)
@@ -56,6 +57,20 @@ const Workspace: React.FC<Props> = ({children}) => {
     const [showInviteChannelModal, setShowInviteChannelModal] = useState(false)
     const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('')
     const [newUrl, onChangeNewUrl, setNewUrl] = useInput('')
+    const [socket, disconnect] = useSocket(workspace);
+
+    useEffect(() => {
+        // 내가 로그인했다는 것을 알려준다 모든 워크스페이스 등등에 
+        if( channelData && userData && socket) {
+            console.log(socket)
+            socket.emit('login', {id : userData.id, channels: channelData.map((v) => v.id) })
+        }
+    },[socket, channelData, userData])
+    useEffect(() => {
+        return () => {
+            disconnect()
+        }
+    },[workspace,disconnect])
 
     const onLogout = useCallback(() => {
         axios.post('http://localhost:3095/api/users/logout', null, {

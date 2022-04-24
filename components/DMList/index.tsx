@@ -59,7 +59,7 @@ const DMList = () => {
       <div>
         {!channelCollapse &&
           memberData?.map((member) => {
-            const isOnline = onlineList.includes(member.id);
+            const isOnline = onlineList.includes(member.id); // 온라인 중인 리스트를 받아서 멤버들 아이디가 있는지 확인 
             return <EachDM key={member.id} member={member} isOnline={isOnline} />;
           })}
       </div>

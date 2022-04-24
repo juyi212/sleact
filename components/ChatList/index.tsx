@@ -4,14 +4,15 @@ import {IDM} from '@typings/db'
 import Chat from '@components/Chat'
 import { Scrollbars } from 'react-custom-scrollbars';
 
+
 interface Props {
     chatData? : IDM[];
 }
 
 const ChatList: VFC<Props> = ({chatData}) => {
     const scrollbarRef = useRef(null)
-    const onScroll =  useCallback(() => {
-
+    const onScroll =  useCallback(() => {   
+        // 위로 스크롤해서 과거채팅들 로딩 구현 
     }, [])
 
 

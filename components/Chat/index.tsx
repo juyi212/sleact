@@ -11,7 +11,6 @@ interface Props {
 }
 
 const Chat: VFC<Props> = ({data}) => {
-    console.log(data)
     const user = data.Sender
     return (
         <ChatWrapper>

@@ -9,6 +9,7 @@ import ChatBox from '@components/ChatBox';
 import ChatList from '@components/ChatList';
 import useInput from '@hooks/useInput';
 import axios from 'axios';
+import makeSection from '@utils/makeSection';
 
 
 const DirectMessage = () => {
@@ -17,7 +18,7 @@ const DirectMessage = () => {
     const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
     const [chat, onChangeChat, setChat] = useInput('')
     const {data: chatData, mutate: mutateChat} = useSWR<IDM[]> (
-        `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`,
+        `/api/workspaces/${workspace}/dms/${id}/chats?perPage=30&page=1`,
         fetcher
     )
 
@@ -41,13 +42,18 @@ const DirectMessage = () => {
     if (!userData || !myData) {
         return null;
       }
+
+    //immutable하게 reverse! concat을 써도됨 
+    const chatSections = makeSection(chatData ? [...chatData].reverse() : []) 
+
+
     return (
         <Container>
             <Header>
                 <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
                 <span>{userData.nickname}</span>
             </Header>
-            <ChatList chatData = {chatData} />
+            <ChatList chatSections = {chatSections} />
             <ChatBox chat ={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm}/>
         </Container>
     )

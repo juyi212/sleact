@@ -1,5 +1,5 @@
 import React, {VFC, memo, useMemo} from 'react';
-import {IDM} from '@typings/db'
+import {IChat, IDM} from '@typings/db'
 import { ChatWrapper } from './styles';
 import gravatar from 'gravatar';
 import dayjs from'dayjs'
@@ -7,11 +7,11 @@ import regexifyString from 'regexify-string';
 import { Link, useParams } from 'react-router-dom';
 
 interface Props {
-    data : IDM;
+    data : (IDM| IChat);
 }
 
 const Chat: VFC<Props> = ({data}) => {
-    const user = data.Sender
+    const user = 'Sender' in data ? data.Sender : data.User; // DM, Channel
     const { workspace } = useParams<{ workspace: string; channel: string }>();
     // 정규 표현식 @[제로초](3) 알아두는 것이 좋다! 
     // \d 숫자 +는 1개 이상, ? 0개나 1개 이상  

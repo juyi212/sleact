@@ -13,9 +13,10 @@ interface Props {
     onSubmitForm : (e: any) => void;
     onChangeChat : (e: any) => void;
     placeholder? : string;
+    data? : IUser[];
 }
 
-const ChatBox : FC<Props> = ({chat, onSubmitForm, onChangeChat, placeholder}) => {
+const ChatBox : FC<Props> = ({chat, onSubmitForm, onChangeChat, placeholder, data}) => {
     const textareaRef = useRef(null)
     const { workspace } = useParams<{ workspace: string}> ();
     const { data: userData, mutate: revalidateUser } = useSWR<IUser | false>('/api/users', fetcher);

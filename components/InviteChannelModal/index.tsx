@@ -29,6 +29,7 @@ const InviteChannelModal: FC<Props> = ({ show, onCloseModal, setShowInviteChanne
       if (!newMember || !newMember.trim()) {
         return;
       }
+      console.log(newMember)
       axios
         .post(`/api/workspaces/${workspace}/channels/${channel}/members`, {
           email: newMember,
@@ -51,7 +52,7 @@ const InviteChannelModal: FC<Props> = ({ show, onCloseModal, setShowInviteChanne
       <form onSubmit={onInviteMember}>
         <Label id="member-label">
           <span>채널 멤버 초대</span>
-          <Input id="member" value={newMember} onChange={onChangeNewMember} />
+          <Input id="member" value={newMember} onChange={onChangeNewMember} placeholder='이메일을 입력해주세요.'/>
         </Label>
         <Button type="submit">초대하기</Button>
       </form>

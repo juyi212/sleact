@@ -1,16 +1,16 @@
 import React, {VFC, useCallback, forwardRef, RefObject} from 'react';
 import { ChatZone, Section, StickyHeader } from '@components/ChatList/styles';
-import {IDM} from '@typings/db'
+import {IChat, IDM} from '@typings/db'
 import Chat from '@components/Chat'
 import { Scrollbars } from 'react-custom-scrollbars';
 
 
 interface Props {
     scrollbarRef: RefObject<Scrollbars>;
-    chatSections: {[key: string]: IDM[]}; //객체임 
-    setSize: (f: (size: number) => number) => Promise<IDM[][] | undefined>;
+    chatSections: {[key: string]: (IDM | IChat)[]}; //객체임 
+    setSize: (f: (size: number) => number) => Promise<(IDM | IChat)[][] | undefined>;
     isEmpty : boolean;
-    isReachingEnd : boolean;
+    isReachingEnd? : boolean;
 }
 
 const ChatList = forwardRef<Scrollbars, Props>(({scrollbarRef, chatSections, setSize, isEmpty, isReachingEnd}) => {

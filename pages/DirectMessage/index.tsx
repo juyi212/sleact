@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react'
+import React, {useCallback, useEffect, useRef} from 'react'
 import { Container, Header } from './styles';
 import gravatar from 'gravatar'
 import useSWR from 'swr';
@@ -12,6 +12,7 @@ import useInput from '@hooks/useInput';
 import axios from 'axios';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars';
+import useSocket from '@hooks/useSocket';
 
 
 const DirectMessage = () => {
@@ -19,27 +20,84 @@ const DirectMessage = () => {
     const { data: myData } = useSWR('/api/users', fetcher);
     const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
     const [chat, onChangeChat, setChat] = useInput('')
-    const {data: chatData, mutate: mutateChat} = useSWR<IDM[]> (
-        `/api/workspaces/${workspace}/dms/${id}/chats?perPage=30&page=1`,
+    const [socket] = useSocket(workspace)
+    const {data: chatData, mutate: mutateChat, setSize } = useSWRInfinite<IDM[]> ((index) =>
+        `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=${index+1}`,
         fetcher
-    )
+    ) // 2차원 배열임 > [[{id:1}, {id:3}],[{id:3}, {id:4}]] 이런식   
+    const isEmpty = chatData?.[0]?.length === 0; // 데이터가 비어있을 경우  
+    const isReachingEnd = isEmpty || (chatData && chatData[chatData.length-1]?.length < 20) || false;
     const scrollbarRef = useRef<Scrollbars>(null) // 스크롤바를 컨트롤 > 채팅을하다가 스크롤 올리고 다시 채팅을 했을 때 내려가야함 
 
     const onSubmitForm = useCallback((e: any)=> {
         e.preventDefault();
         if (chat?.trim() && chatData){
-            axios.post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
-                content: chat
-            })
+            const savedChat = chat ; //옵티멉스 UI 
+            mutateChat((prevChatData) => {
+                prevChatData?.[0].unshift({
+                    id: (chatData[0][0]?.id || 0) + 1,
+                    content: savedChat,
+                    SenderId: myData.id,
+                    Sender: myData,
+                    ReceiverId: userData.id,
+                    Receiver: userData,
+                    createdAt: new Date(),
+                })
+                return prevChatData
+            }, false)
             .then(() => {
                 mutateChat()
                 setChat('')
+                scrollbarRef.current?.scrollToBottom();
+            })
+            axios.post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
+                content: chat
             })
             .catch((error) => {
                 console.log(error)
             })
         }
     },[chat, workspace, id, myData, userData, chatData, mutateChat, setChat])
+    
+    const onMessage = useCallback(
+        (data: IDM) => {
+          if (data.SenderId === Number(id) && myData.id !== Number(id)) {
+            mutateChat((chatData) => {
+              chatData?.[0].unshift(data);
+              return chatData;
+            }, false).then(() => {
+              if (scrollbarRef.current) {
+                if (
+                  scrollbarRef.current.getScrollHeight() <
+                  scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 250
+                ) {
+                  console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+                  setTimeout(() => {
+                    scrollbarRef.current?.scrollToBottom();
+                  }, 100);
+                }
+              }
+            });
+          }
+        },
+        [id, myData, mutateChat],
+      );
+
+
+    // DM 보내기
+    useEffect(() => {
+        socket?.on('dm', onMessage)
+        return () => {
+            socket?.off('dm', onMessage)
+        }
+    }, [socket, onMessage])
+
+    useEffect(() => {
+        // 스크롤바 맨 아래로 
+        if(chatData?.length === 1) {
+            scrollbarRef.current?.scrollToBottom();
+        }
+    },[chatData])
 
 
     if (!userData || !myData) {
@@ -47,7 +105,8 @@ const DirectMessage = () => {
       }
 
     //immutable하게 reverse! concat을 써도됨 
-    const chatSections = makeSection(chatData ? [...chatData].reverse() : []) 
+    // flat 2차원을 1차원으로 
+    const chatSections = makeSection(chatData ? chatData.flat().reverse() : []) 
 
 
     return (
@@ -56,7 +115,13 @@ const DirectMessage = () => {
                 <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
                 <span>{userData.nickname}</span>
             </Header>
-            <ChatList chatSections = {chatSections} ref={scrollbarRef} />
+            <ChatList 
+                chatSections = {chatSections} 
+                scrollbarRef={scrollbarRef} 
+                setSize = {setSize} 
+                isEmpty = {isEmpty}
+                isReachingEnd = {isReachingEnd}
+                />
             <ChatBox chat ={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm}/>
         </Container>
     )

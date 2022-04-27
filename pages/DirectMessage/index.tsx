@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react'
+import React, {useCallback, useEffect, useRef, useState} from 'react'
 import { Container, Header } from './styles';
 import gravatar from 'gravatar'
 import useSWR from 'swr';
@@ -13,6 +13,7 @@ import axios from 'axios';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
+import { DragOver } from '@pages/Channel/styles';
 
 
 const DirectMessage = () => {
@@ -20,6 +21,7 @@ const DirectMessage = () => {
     const { data: myData } = useSWR('/api/users', fetcher);
     const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
     const [chat, onChangeChat, setChat] = useInput('')
+    const [dragOver, setDragOver] = useState(false)
     const [socket] = useSocket(workspace)
     const {data: chatData, mutate: mutateChat, setSize } = useSWRInfinite<IDM[]> ((index) =>
         `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=${index+1}`,
@@ -82,7 +84,9 @@ const DirectMessage = () => {
         },
         [id, myData, mutateChat],
       );
-
+      
+    const onDrag = useCallback(() => {} ,[])
+    const oonDragOvernDrag = useCallback(() => {} ,[])
 
     // DM 보내기
     useEffect(() => {
@@ -110,7 +114,7 @@ const DirectMessage = () => {
 
 
     return (
-        <Container>
+        <Container onDrop={onDrop} onDragOver={onDragOver}>
             <Header>
                 <img src={gravatar.url(userData.email, { s: '24px', d: 'retro' })} alt={userData.nickname} />
                 <span>{userData.nickname}</span>
@@ -123,6 +127,7 @@ const DirectMessage = () => {
                 isReachingEnd = {isReachingEnd}
                 />
             <ChatBox chat ={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm}/>
+            {dragOver && <DragOver>업로드! </DragOver>}
         </Container>
     )
 }

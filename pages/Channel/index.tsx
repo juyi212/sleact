@@ -19,6 +19,7 @@ import axios from 'axios'
 const Channel = () => {
     const {workspace, channel} = useParams<{workspace: string, channel: string}>();
     const [socket] = useSocket(workspace);
+    const [dragOver, setDragOver] = useState(false)
     const { data: userData } = useSWR<IUser>('/api/users', fetcher);
     const [chat, onChangeChat, setChat] = useInput('')
     const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
@@ -60,7 +61,7 @@ const Channel = () => {
               localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
               setChat('');
               if (scrollbarRef.current) {
-                console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+                //console.log('scrollToBottom!', scrollbarRef.current?.getValues());
                 scrollbarRef.current.scrollToBottom();
               }
             });
@@ -81,8 +82,8 @@ const Channel = () => {
       const onMessage = useCallback(
         (data: IChat) => {
           if (
-            data.Channel.name === channel && (data.UserId !== userData?.id)
-          ) {
+            data.Channel.name === channel && (data.content.startsWith('uploads/') || data.UserId !== userData?.id)) 
+            {
             mutateChat((chatData) => {
               chatData?.[0].unshift(data);
               return chatData;
@@ -104,6 +105,35 @@ const Channel = () => {
         [channel, userData, mutateChat],
       );
 
+      const onDrop = useCallback((e: any) => {
+        e.preventDefault()
+        const formData = new FormData();
+        if (e.dataTransfer.items) {
+          for (var i = 0; i < e.dataTransfer.items.length; i++) {
+            if (e.dataTransfer.items[i].kind === 'file') {
+              var file = e.dataTransfer.items[i].getAsFile();
+              console.log('... file[' + i + '].name = ' + file.name);
+              formData.append('image', file)
+            }
+          }
+        } else {
+          for (var i = 0; i < e.dataTransfer.files.length; i++) {
+            console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+            formData.append('image', e.dataTransfer.files[i]);
+          }
+        }
+        axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData). then(() => {
+          setDragOver(false)
+          mutateChat();
+        })
+      } ,[])
+  
+      const onDragOver = useCallback((e: any) => {
+        e.preventDefault()
+        setDragOver(true)
+      } ,[])
+
+
     useEffect(() => {
     socket?.on('message', onMessage);
     return () => {
@@ -114,7 +144,7 @@ const Channel = () => {
     const chatSections = makeSection(chatData ? chatData.flat().reverse() : []) 
 
     return (
-        <Container>
+        <Container onDrop={onDrop} onDragOver={onDragOver}>
             <Header>
                 <span>#{channel}</span>
                 <div>

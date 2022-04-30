@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import { Container, Header } from './styles';
 import gravatar from 'gravatar'
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import useSWRInfinite from 'swr/infinite'
 import { IChannel, IDM, IUser } from '@typings/db';
 import { useParams } from 'react-router';
@@ -73,7 +73,7 @@ const DirectMessage = () => {
                   scrollbarRef.current.getScrollHeight() <
                   scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 250
                 ) {
-                  console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+                  //console.log('scrollToBottom!', scrollbarRef.current?.getValues());
                   setTimeout(() => {
                     scrollbarRef.current?.scrollToBottom();
                   }, 100);
@@ -85,8 +85,33 @@ const DirectMessage = () => {
         [id, myData, mutateChat],
       );
       
-    const onDrag = useCallback(() => {} ,[])
-    const oonDragOvernDrag = useCallback(() => {} ,[])
+    const onDrop = useCallback((e: any) => {
+      e.preventDefault()
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        for (var i = 0; i < e.dataTransfer.items.length; i++) {
+          if (e.dataTransfer.items[i].kind === 'file') {
+            var file = e.dataTransfer.items[i].getAsFile();
+            console.log('... file[' + i + '].name = ' + file.name);
+            formData.append('image', file)
+          }
+        }
+      } else {
+        for (var i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspaces/${workspace}/dms/${id}/images`, formData). then(() => {
+        setDragOver(false)
+        mutateChat();
+      })
+    } ,[])
+
+    const onDragOver = useCallback((e: any) => {
+      e.preventDefault()
+      setDragOver(true)
+    } ,[])
 
     // DM 보내기
     useEffect(() => {

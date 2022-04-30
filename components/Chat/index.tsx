@@ -10,12 +10,19 @@ interface Props {
     data : (IDM| IChat);
 }
 
+const BACK_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:3095' : 'https://sleact.nodebird.com';
 const Chat: VFC<Props> = ({data}) => {
     const user = 'Sender' in data ? data.Sender : data.User; // DM, Channel
     const { workspace } = useParams<{ workspace: string; channel: string }>();
     // 정규 표현식 @[제로초](3) 알아두는 것이 좋다! 
     // \d 숫자 +는 1개 이상, ? 0개나 1개 이상  
-    const result = useMemo(() => regexifyString({
+    const result = useMemo(
+        () => 
+    // uploads //로 오면 이미지 태그로 바꿔라 
+    data.content.startsWith('uploads/') ? (
+        <img src={`${BACK_URL}/${data.content}`} style={{ maxHeight: 200 }} />
+    ):(
+    regexifyString({
         input: data.content,
         pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
         decorator(match, index){
@@ -29,7 +36,7 @@ const Chat: VFC<Props> = ({data}) => {
             }
             return <br key={index} />;
         }
-        }), [data.content])
+    })), [data.content])
 
 
     return (

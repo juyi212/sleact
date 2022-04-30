@@ -48,9 +48,13 @@ const DirectMessage = () => {
                 return prevChatData
             }, false)
             .then(() => {
-                mutateChat()
-                setChat('')
-                scrollbarRef.current?.scrollToBottom();
+              localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
+              setChat('');
+              mutateChat()
+              if (scrollbarRef.current) {
+                console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+                scrollbarRef.current.scrollToBottom();
+              }
             })
             axios.post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
                 content: chat
@@ -84,6 +88,11 @@ const DirectMessage = () => {
         },
         [id, myData, mutateChat],
       );
+    
+      useEffect(() => {
+        localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
+    }, [workspace, id]);
+
       
     const onDrop = useCallback((e: any) => {
       e.preventDefault()
@@ -105,6 +114,7 @@ const DirectMessage = () => {
       axios.post(`/api/workspaces/${workspace}/dms/${id}/images`, formData). then(() => {
         setDragOver(false)
         mutateChat();
+        localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
       })
     } ,[])
 

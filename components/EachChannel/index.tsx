@@ -15,10 +15,11 @@ const EachChannel: VFC<Props> = ({ channel }) => {
     dedupingInterval: 2000, // 2초
   });
 
-  // const date = localStorage.getItem(`${workspace}-${channel.name}`) || 0;
-  const { data: count, mutate } = useSWR(
-    channel.name && userData ? `/api/workspaces/${workspace}/channels/${channel.name}/members` : null,
-    fetcher, ) ;
+    const date = localStorage.getItem(`${workspace}-${channel.name}`) || 0;
+    const { data: count, mutate } = useSWR<number>(
+      channel.name && userData  ? `/api/workspaces/${workspace}/channels/${channel.name}/unreads?after=${date}` : null,
+      fetcher,
+    );
   
 
   // useEffect(() => {

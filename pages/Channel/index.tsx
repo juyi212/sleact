@@ -1,6 +1,6 @@
 import Workspace from '@layouts/Workspace'
 import React, {useCallback, useEffect, useRef, useState} from 'react'
-import { Container, Header } from './styles'
+import { Container, DragOver, Header } from './styles'
 import ChatList from '@components/ChatList'
 import ChatBox from '@components/ChatBox'
 import useInput from '@hooks/useInput'
@@ -60,8 +60,9 @@ const Channel = () => {
             }, false).then(() => {
               localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
               setChat('');
+              mutateChat()
               if (scrollbarRef.current) {
-                //console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+                console.log('scrollToBottom!', scrollbarRef.current?.getValues());
                 scrollbarRef.current.scrollToBottom();
               }
             });
@@ -105,6 +106,10 @@ const Channel = () => {
         [channel, userData, mutateChat],
       );
 
+      useEffect(() => {
+        localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+      }, [workspace, channel]);
+
       const onDrop = useCallback((e: any) => {
         e.preventDefault()
         const formData = new FormData();
@@ -125,6 +130,7 @@ const Channel = () => {
         axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData). then(() => {
           setDragOver(false)
           mutateChat();
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
         })
       } ,[])
   
@@ -179,6 +185,7 @@ const Channel = () => {
                 onCloseModal={onCloseModal}
                 setShowInviteChannelModal={setShowInviteChannelModal}
             />
+            {dragOver && <DragOver>업로드! </DragOver>}
         </Container>
     )
 }
